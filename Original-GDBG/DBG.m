@@ -1,4 +1,4 @@
-function [f,error,x,FES,dim] = newDBGtmp(x,fun_num,change_instance,FES,num_runs,dim,fun_opts)
+function [f,error,x,FES,dim] = DBG(x,fun_num,change_instance,FES,num_runs,dim,fun_opts)
 % Generalized Dynamic Benchmark Generator
 % for CEC'2009 Competition on Dynamic Optimization
 
@@ -37,19 +37,17 @@ function [f,error,x,FES,dim] = newDBGtmp(x,fun_num,change_instance,FES,num_runs,
 % Elaine L. Yu
 % YuLing@ntu.edu.sg
 % Nanyang Technological University
-persistent dim_change;
-persistent change_count;
-persistent FES_last_change;
-persistent theta;
-persistent x_peaks;
-persistent h;
-persistent w;
-persistent o;
-persistent func_handles;
-persistent M;
+global dim_change;
+global change_count;
+global FES_last_change;
+global theta;
+global x_peaks;
+global h;
+global w;
+global o;
 % ----- reading parameters -----
 if nargin<5
-    disp('Insufficient arguements')
+    disp('Insufficient arguements') 
 end
 if nargin<7
     fun_opts = [];
@@ -87,7 +85,7 @@ domain5 = [-32 32];                   % domain of Ackley's function
 if FES==0
     change_count=0;
     FES_last_change=0;
-    %     save Dynamic_Change_Info change_count FES_last_change;
+%     save Dynamic_Change_Info change_count FES_last_change;
 end
 % load Dynamic_Change_Info;
 
@@ -114,23 +112,27 @@ if fun_num==1                   % Rotation peak function
         end
         if change_instance==7
             dim_change = 1;
-            %             save dim_change dim_change;
+%             save dim_change dim_change;
         end
+    else
+%         load x_peaks;
+%         load h;
+%         load w;
     end
     if FES==FES_last_change+freq    % dynamic change
         change_count=change_count+1;
         FES_last_change=FES;
-        %         save Dynamic_Change_Info change_count FES_last_change;
+%         save Dynamic_Change_Info change_count FES_last_change;
         if change_instance>=1 & change_instance<=6
             h = DynamicChange(h,change_instance,h_min,h_max,h_severity,change_count);
             w = DynamicChange(w,change_instance,w_min,w_max,w_severity,change_count);
         elseif change_instance==7
             h = DynamicChange(h,3,h_min,h_max,h_severity,change_count);
             w = DynamicChange(w,3,w_min,w_max,w_severity,change_count);
-            %             load dim_change;
+%             load dim_change;
             if dim+dim_change>15 | dim+dim_change<5
                 dim_change=-1*dim_change;
-                %                 save dim_change dim_change;
+%                 save dim_change dim_change;
             end
             dim = dim+dim_change;
             if dim_change>0           % Dimension is increased by 1.
@@ -157,9 +159,9 @@ if fun_num==1                   % Rotation peak function
                     theta = 0;
                     theta = DynamicChange(theta,change_instance,0,pi/6,1,change_count);
                 end
-                %                 save theta theta;
+%                 save theta theta;
             else
-                %                 load theta;
+%                 load theta;
                 if change_instance>=1 & change_instance<=4
                     theta = DynamicChange(theta,change_instance,-pi,pi,1,change_count);
                 elseif change_instance==5 | change_instance==6
@@ -167,7 +169,7 @@ if fun_num==1                   % Rotation peak function
                 else
                     theta = DynamicChange(theta,3,-pi,pi,1,change_count);
                 end
-                %                 save theta theta;
+%                 save theta theta;
             end
             rotation_matrix = eye(dim);
             for i=1:l/2
@@ -181,14 +183,14 @@ if fun_num==1                   % Rotation peak function
             x_peaks(x_peaks<bounds(1))=bounds(1);
         end
     end
-    sx = sum(x.^2,2);
-    sxp = sum(x_peaks.^2,2);
-    
-%     f = max(h./(1+w.*sqrt(sum((ones(num_peaks,1)*x-x_peaks).^2,2)./dim)));
-    f=bsxfun(@ldivide,1+bsxfun(@times,sqrt(bsxfun(@plus,bsxfun(@plus,-2*x*x_peaks', sx), sxp')./dim),w'),h');
-    f=max(f,[],2);
-    FES = FES+size(x,1);
-    
+    f = max(h./(1+w.*sqrt(sum((ones(num_peaks,1)*x-x_peaks).^2,2)./dim)));
+    % ps=size(x,1);
+    % temp=sqrt(sum(abs(repmat(permute(x,[1 3 2]),[1 num_peaks 1])-repmat(permute(x_peaks,[3 1 2]),[ps 1 1])).^2,3)/dim);
+    % f=max((ones(ps,1)*h')./(1+(ones(ps,1)*w').*temp),[],2);
+    FES = FES+1;
+%     save x_peaks x_peaks;
+%     save h h;
+%     save w w;
 elseif fun_num>=2 & fun_num<=6  % Composition functions
     if FES==0
         load composition_func_data;
@@ -204,39 +206,24 @@ elseif fun_num>=2 & fun_num<=6  % Composition functions
         end
         if change_instance==7
             dim_change = 1;
-            %             save dim_change dim_change;
-        end
-        
-        eval(['load composition_func_M_D' int2str(dim)]);
-        M={M1,M2,M3,M4,M5,M6,M7,M8,M9,M10};
-        switch(fun_num)
-            case 2
-                func_handles={@fsphere,@fsphere,@fsphere,@fsphere,@fsphere,@fsphere,@fsphere,@fsphere,@fsphere,@fsphere};
-            case 3
-                func_handles={@frastrigin,@frastrigin,@frastrigin,@frastrigin,@frastrigin,@frastrigin,@frastrigin,@frastrigin,@frastrigin,@frastrigin};
-            case 4
-                func_handles={@fgriewank,@fgriewank,@fgriewank,@fgriewank,@fgriewank,@fgriewank,@fgriewank,@fgriewank,@fgriewank,@fgriewank};
-            case 5
-                func_handles={@fackley,@fackley,@fackley,@fackley,@fackley,@fackley,@fackley,@fackley,@fackley,@fackley};
-            case 6
-                func_handles={@fsphere,@fsphere,@fackley,@fackley,@fgriewank,@fgriewank,@frastrigin,@frastrigin,@fweierstrass,@fweierstrass};
+%             save dim_change dim_change;
         end
     else
-        %         load o;
-        %         load h;
+%         load o;
+%         load h;
     end
     if FES==FES_last_change+freq    % dynamic change
         change_count=change_count+1;
         FES_last_change=FES;
-        %         save Dynamic_Change_Info change_count FES_last_change;
+%         save Dynamic_Change_Info change_count FES_last_change;
         if change_instance>=1 & change_instance<=6
             h = DynamicChange(h,change_instance,h_min,h_max,h_severity,change_count);
         elseif change_instance==7
             h = DynamicChange(h,3,h_min,h_max,h_severity,change_count);
-            %             load dim_change;
+%             load dim_change;
             if dim+dim_change>15 | dim+dim_change<5
                 dim_change=-1*dim_change;
-                %                 save dim_change dim_change;
+%                 save dim_change dim_change;
             end
             dim = dim+dim_change;
             if dim_change>0           % Dimension is increased by 1.
@@ -247,8 +234,6 @@ elseif fun_num>=2 & fun_num<=6  % Composition functions
                 x = x(:,1:dim);
                 o = o(:,1:dim);
             end
-            eval(['load composition_func_M_D' int2str(dim)]);
-            M={M1,M2,M3,M4,M5,M6,M7,M8,M9,M10};
         else
             disp('Incorrect arguements')
         end
@@ -265,9 +250,9 @@ elseif fun_num>=2 & fun_num<=6  % Composition functions
                     theta = 0;
                     theta = DynamicChange(theta,change_instance,0,pi/6,1,change_count);
                 end
-                %                 save theta theta;
+%                 save theta theta;
             else
-                %                 load theta;
+%                 load theta;
                 if change_instance>=1 & change_instance<=4
                     theta = DynamicChange(theta,change_instance,-pi,pi,1,change_count);
                 elseif change_instance==5 | change_instance==6
@@ -275,7 +260,7 @@ elseif fun_num>=2 & fun_num<=6  % Composition functions
                 else
                     theta = DynamicChange(theta,3,-pi,pi,1,change_count);
                 end
-                %                 save theta theta;
+%                 save theta theta;
             end
             rotation_matrix = eye(dim);
             for i=1:l/2
@@ -289,78 +274,82 @@ elseif fun_num>=2 & fun_num<=6  % Composition functions
             o(o<bounds(1))=bounds(1);
         end
     end
-    %%
-%     weight = zeros(size(x,1),10);
-%     for k = 1:size(x,1)
-%         weight(k,:) = (exp(-sqrt(sum((ones(10,1)*x(k,:)-o).^2,2)./2./(dim*sigma^2))))';
-%         [tmp,tmpid] = sort(weight(k,:),2);     % weight is a 10*1 column vector.
-%         weight(k,:) = (weight(k,:)==tmp(10)).*weight(k,:)+(weight(k,:)~=tmp(10)).*(weight(k,:).*(1-tmp(10).^10));
-%         tmp = sum(weight(k,:));
-%         weight(k,:) = weight(k,:)./tmp;
-%     end
-%     weightold = weight;
-    %%
-    sx = sum(x.^2,2);
-    so = sum(o.^2,2);
-    weight = exp(-sqrt(bsxfun(@plus,bsxfun(@plus,-2*x*o', sx), so')./(2*dim*sigma^2)));
-    [max_weight,~] = max(weight,[],2);
-%     weight = bsxfun(@times,weight,1-power(max_weight,10));
-%     weight = bsxfun(@lt, weight, max_weight).*bsxfun(@times,weight,1-power(max_weight,10)) + bsxfun(@ge, weight, max_weight).*weight;
-    extended_max_weight = repmat(max_weight,[1,num_basic_fun]);
-    weight = (weight==extended_max_weight).*weight + (weight~=extended_max_weight).*(weight.*(1-extended_max_weight.^10));
-    sum_weight = sum(weight,2);
-    weight = bsxfun(@rdivide,weight,sum_weight);
+    eval(['load composition_func_M_D' int2str(dim)]);
     
-%     delta = weightold - weight;
-    %%
+    weight = exp(-sqrt(sum((ones(10,1)*x-o).^2,2)./2./(dim*sigma^2)));
+    [tmp,tmpid] = sort(weight,1);     % weight is a 10*1 column vector.
+    weight = (weight==tmp(10)).*weight+(weight~=tmp(10)).*(weight.*(1-tmp(10).^10));
+    tmp = sum(weight);
+    weight = weight./tmp;
     lamda = ones(10,1);
+    fmax = zeros(10,1);         % fmax non-negative (as f non-negative)
     f = 0;
-    switch(fun_num)
-        case 2
-            x_max = ones(1,dim)*domain1(2);
-            lamda = sigma*(bounds(2)-bounds(1))/(domain1(2)-domain1(1))*lamda;
-        case 3
-            x_max = ones(1,dim)*domain2(2);
-            lamda = sigma*(bounds(2)-bounds(1))/(domain2(2)-domain2(1))*lamda;
-        case 4
-            x_max = ones(1,dim)*domain4(2);
-            lamda = sigma*(bounds(2)-bounds(1))/(domain4(2)-domain4(1))*lamda;
-        case 5
-            x_max = ones(1,dim)*domain5(2);
-            lamda = sigma*(bounds(2)-bounds(1))/(domain5(2)-domain5(1))*lamda;
-    end
-    for i=1:10
-        if(fun_num==6)
-            lamda = ones(10,1);
-            switch (i)
-                case {1,2}
-                    x_max = ones(1,dim)*domain1(2);
-                    lamda = sigma*(bounds(2)-bounds(1))/(domain1(2)-domain1(1))*lamda;
-                case {3,4}
-                    x_max = ones(1,dim)*domain5(2);
-                    lamda = sigma*(bounds(2)-bounds(1))/(domain5(2)-domain5(1))*lamda;
-                case {5,6}
-                    x_max = ones(1,dim)*domain4(2);
-                    lamda = sigma*(bounds(2)-bounds(1))/(domain4(2)-domain4(1))*lamda;
-                case {7,8}
-                    x_max = ones(1,dim)*domain2(2);
-                    lamda = sigma*(bounds(2)-bounds(1))/(domain2(2)-domain2(1))*lamda;
-                case {9,10}
-                    x_max = ones(1,dim)*domain3(2);
-                    lamda = sigma*(bounds(2)-bounds(1))/(domain3(2)-domain3(1))*lamda;
-            end
+    if fun_num==2               % Composition of Sphere function
+        lamda = sigma*(bounds(2)-bounds(1))/(domain1(2)-domain1(1))*lamda;
+        for i=1:10
+            eval(['fmax(i) = fsphere((domain1(2)*ones(1,dim))*M' int2str(i) ');']);
+            eval(['f = f+weight(i)*(C*fsphere(((x-o(i,:))/lamda(i))*M' int2str(i) ')/fmax(i)+h(i));']);
         end
-        fmax = feval(func_handles{i},x_max*M{i});
-        f = f + weight(:,i).*(C*feval(func_handles{i},(bsxfun(@minus,x,o(i,:))./lamda(i))*M{i})/fmax+ h(i));
+    elseif fun_num==3           % Composition of Rastrigin's function
+        lamda = sigma*(bounds(2)-bounds(1))/(domain2(2)-domain2(1))*lamda;
+        for i=1:10
+            eval(['fmax(i) = frastrigin((domain2(2)*ones(1,dim))*M' int2str(i) ');']);
+            eval(['f = f+weight(i)*(C*frastrigin(((x-o(i,:))/lamda(i))*M' int2str(i) ')/fmax(i)+h(i));']);
+        end
+    elseif fun_num==4           % Composition of Griewank's function
+        lamda = sigma*(bounds(2)-bounds(1))/(domain4(2)-domain4(1))*lamda;
+        for i=1:10
+            eval(['fmax(i) = fgriewank((domain4(2)*ones(1,dim))*M' int2str(i) ');']);
+            eval(['f = f+weight(i)*(C*fgriewank(((x-o(i,:))/lamda(i))*M' int2str(i) ')/fmax(i)+h(i));']);
+        end
+    elseif fun_num==5           % Composition of Ackley's function
+        lamda = sigma*(bounds(2)-bounds(1))/(domain5(2)-domain5(1))*lamda;
+        for i=1:10
+            eval(['fmax(i) = fackley((domain5(2)*ones(1,dim))*M' int2str(i) ');']);
+            eval(['f = f+weight(i)*(C*fackley(((x-o(i,:))/lamda(i))*M' int2str(i) ')/fmax(i)+h(i));']);
+        end
+    elseif fun_num==6           % Hybrid Composition function
+        lamda(1) = sigma*(bounds(2)-bounds(1))/(domain1(2)-domain1(1));
+        lamda(2) = lamda(1);
+        lamda(3) = sigma*(bounds(2)-bounds(1))/(domain5(2)-domain5(1));
+        lamda(4) = lamda(3);
+        lamda(5) = sigma*(bounds(2)-bounds(1))/(domain4(2)-domain4(1));
+        lamda(6) = lamda(5);
+        lamda(7) = sigma*(bounds(2)-bounds(1))/(domain2(2)-domain2(1));
+        lamda(8) = lamda(7);
+        lamda(9) = sigma*(bounds(2)-bounds(1))/(domain3(2)-domain3(1));
+        lamda(10) = lamda(9);
+        fmax(1) = fsphere((domain1(2)*ones(1,dim))*M1);
+        fmax(2) = fsphere((domain1(2)*ones(1,dim))*M2);
+        fmax(3) = fackley((domain5(2)*ones(1,dim))*M3);
+        fmax(4) = fackley((domain5(2)*ones(1,dim))*M4);
+        fmax(5) = fgriewank((domain4(2)*ones(1,dim))*M5);
+        fmax(6) = fgriewank((domain4(2)*ones(1,dim))*M6);
+        fmax(7) = frastrigin((domain2(2)*ones(1,dim))*M7);
+        fmax(8) = frastrigin((domain2(2)*ones(1,dim))*M8);
+        fmax(9) = fweierstrass((domain3(2)*ones(1,dim))*M9);
+        fmax(10) = fweierstrass((domain3(2)*ones(1,dim))*M10);
+        f = f+weight(1)*(C*fsphere(((x-o(1,:))/lamda(1))*M1)/fmax(1)+h(1));
+        f = f+weight(2)*(C*fsphere(((x-o(2,:))/lamda(2))*M2)/fmax(2)+h(2));
+        f = f+weight(3)*(C*fackley(((x-o(3,:))/lamda(3))*M3)/fmax(3)+h(3));
+        f = f+weight(4)*(C*fackley(((x-o(4,:))/lamda(4))*M4)/fmax(4)+h(4));
+        f = f+weight(5)*(C*fgriewank(((x-o(5,:))/lamda(5))*M5)/fmax(5)+h(5));
+        f = f+weight(6)*(C*fgriewank(((x-o(6,:))/lamda(6))*M6)/fmax(6)+h(6));
+        f = f+weight(7)*(C*frastrigin(((x-o(7,:))/lamda(7))*M7)/fmax(7)+h(7));
+        f = f+weight(8)*(C*frastrigin(((x-o(8,:))/lamda(8))*M8)/fmax(8)+h(8));
+        f = f+weight(9)*(C*fweierstrass(((x-o(9,:))/lamda(9))*M9)/fmax(9)+h(9));
+        f = f+weight(10)*(C*fweierstrass(((x-o(10,:))/lamda(10))*M10)/fmax(10)+h(10));
     end
-    FES = FES+size(x,1);
+    FES = FES+1;
+%     save o o;
+%     save h h;
 else
     disp('Incorrect arguements')
 end
 if(fun_num == 1)
     error = max(h)-f;
 else
-    error = f - min(h);
+    error = f - min(h); 
 end
 % performance(f,fun_num,change_instance,FES,dim,num_runs,h,fun_opts);
 

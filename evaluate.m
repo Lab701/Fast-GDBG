@@ -41,16 +41,16 @@ switch(proId)
             if (rem(evals,freq)==0)
                 error = [error,inf];
             end
-            [f,e,~,evals,dim] = newDBGtmp(x,func_num,change_instance,evals,runId,dim,func_opts);
+            [f,e,~,evals,dim] = Fast_DBG(x,func_num,change_instance,evals,runId,dim,func_opts);
             error(end) = min(error(end),min(e));
             if (rem(evals,freq)==0)
                 b=true;
             end
         else
-            [f1,e1,~,evals,dim] = newDBGtmp(x(1:remain_FEs,:),func_num,change_instance,evals,runId,dim,func_opts);
+            [f1,e1,~,evals,dim] = Fast_DBG(x(1:remain_FEs,:),func_num,change_instance,evals,runId,dim,func_opts);
             b=true;
             error(end) = min(error(end),min(e1));
-            [f2,e2,~,evals,dim] = newDBGtmp(x(remain_FEs+1:size(x,1),:),func_num,change_instance,evals,runId,dim,func_opts);
+            [f2,e2,~,evals,dim] = Fast_DBG(x(remain_FEs+1:size(x,1),:),func_num,change_instance,evals,runId,dim,func_opts);
             error = [error,min(e2)];
             f=[f1;f2];
         end
