@@ -314,7 +314,7 @@ elseif fun_num>=2 & fun_num<=6  % Composition functions
     %%
     sx = sum(x.^2,2);
     so = sum(o.^2,2);
-    weight = exp(-sqrt(bsxfun(@plus,bsxfun(@plus,-2*x*o', sx), so')./(2*dim*sigma^2)));
+    weight = exp(-sqrt(abs(bsxfun(@plus,bsxfun(@plus,-2*x*o', sx), so'))./(2*dim*sigma^2)));
     [max_weight,~] = max(weight,[],2);
 %     weight = bsxfun(@times,weight,1-power(max_weight,10));
 %     weight = bsxfun(@lt, weight, max_weight).*bsxfun(@times,weight,1-power(max_weight,10)) + bsxfun(@ge, weight, max_weight).*weight;
