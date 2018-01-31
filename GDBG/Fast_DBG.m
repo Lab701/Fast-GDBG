@@ -156,24 +156,17 @@ if fun_num==1                   % Rotation peak function
             l = (dim-1)*mod(dim,2)+dim*(1-mod(dim,2));
             r = randperm(dim);
             r = (r(1:l));
-            if change_count==1
-                if change_instance~=5 & change_instance~=6
-                    theta = rand*pi*2-pi;
-                else
+            if change_count==1 && (change_instance == 5 || change_instance == 6)
                     theta = 0;
                     theta = DynamicChange(theta,change_instance,0,pi/6,1,change_count);
-                end
-                %                 save theta theta;
             else
-                %                 load theta;
                 if change_instance>=1 & change_instance<=4
-                    theta = DynamicChange(theta,change_instance,-pi,pi,1,change_count);
+                    theta = DynamicChange(0,change_instance,-pi,pi,1,change_count);
                 elseif change_instance==5 | change_instance==6
                     theta = DynamicChange(theta,change_instance,0,pi/6,1,change_count);
                 else
                     theta = DynamicChange(theta,3,-pi,pi,1,change_count);
                 end
-                %                 save theta theta;
             end
             rotation_matrix = eye(dim);
             for i=1:l/2
@@ -192,11 +185,11 @@ if fun_num==1                   % Rotation peak function
     sxp = sum(x_peaks.^2,2);
     
 %     f = max(h./(1+w.*sqrt(sum((ones(num_peaks,1)*x-x_peaks).^2,2)./dim)));
-    f=bsxfun(@ldivide,1+bsxfun(@times,sqrt(bsxfun(@plus,bsxfun(@plus,-2*x*x_peaks', sx), sxp')./dim),w'),h');
+    f=bsxfun(@ldivide,1+bsxfun(@times,sqrt(abs(bsxfun(@plus,bsxfun(@plus,-2*x*x_peaks', sx), sxp'))./dim),w'),h');
     f=max(f,[],2);
     FES = FES+size(x,1);
     
-elseif fun_num>=2 & fun_num<=6  % Composition functions
+elseif fun_num>=2 && fun_num<=6  % Composition functions
     if FES==0
         load composition_func_data;
         saved_o = o_original(1:10,1:dim);
@@ -269,19 +262,14 @@ elseif fun_num>=2 & fun_num<=6  % Composition functions
             l = (dim-1)*mod(dim,2)+dim*(1-mod(dim,2));
             r = randperm(dim);
             r = (r(1:l));
-            if change_count==1
-                if change_instance~=5 & change_instance~=6
-                    theta = rand*pi*2-pi;
-                else
+            if change_count==1 && (change_instance == 5 || change_instance == 6)
                     theta = 0;
                     theta = DynamicChange(theta,change_instance,0,pi/6,1,change_count);
-                end
-                %                 save theta theta;
             else
                 %                 load theta;
-                if change_instance>=1 & change_instance<=4
-                    theta = DynamicChange(theta,change_instance,-pi,pi,1,change_count);
-                elseif change_instance==5 | change_instance==6
+                if change_instance>=1 && change_instance<=4
+                    theta = DynamicChange(0,change_instance,-pi,pi,1,change_count);
+                elseif change_instance==5 || change_instance==6
                     theta = DynamicChange(theta,change_instance,0,pi/6,1,change_count);
                 else
                     theta = DynamicChange(theta,3,-pi,pi,1,change_count);
