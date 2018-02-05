@@ -175,6 +175,10 @@ if fun_num==1                   % Rotation peak function
                 rotation_matrix(r(i*2-1),r(i*2)) = -sin(theta);
                 rotation_matrix(r(i*2),r(i*2-1)) = sin(theta);
             end
+            if change_instance==5 || change_instance==6
+                load x_peaks_original;
+                saved_x_peaks = x_peaks_original(1:num_peaks,1:dim);
+            end
             saved_x_peaks = saved_x_peaks*rotation_matrix;
             x_peaks = saved_x_peaks;
             x_peaks(x_peaks>bounds(2))=bounds(2);
@@ -282,6 +286,10 @@ elseif fun_num>=2 && fun_num<=6  % Composition functions
                 rotation_matrix(r(i*2),r(i*2)) = cos(theta);
                 rotation_matrix(r(i*2-1),r(i*2)) = -sin(theta);
                 rotation_matrix(r(i*2),r(i*2-1)) = sin(theta);
+            end
+            if change_instance==5 || change_instance==6
+                load composition_func_data;
+                saved_o = o_original(1:10,1:dim);
             end
             saved_o = saved_o*rotation_matrix;
             o = saved_o;
